@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>簡約碼錶</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f4f4f9; }
+        #display { font-size: 4rem; font-weight: bold; margin-bottom: 20px; color: #333; }
+        .buttons button { padding: 10px 20px; font-size: 1.2rem; margin: 0 5px; cursor: pointer; border: none; border-radius: 5px; color: white; }
+        #start { background-color: #28a745; }
+        #pause { background-color: #ffc107; }
+        #reset { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <div id="display">00:00:00</div>
+    <div class="buttons">
+        <button id="start">開始</button>
+        <button id="pause">暫停</button>
+        <button id="reset">重置</button>
+    </div>
+
+    <script>
+       let startTime, elapsedTime = 0, timerInterval;
+let isRunning = false; // 新增狀態變數
+const display = document.getElementById('display');
+
+function timeToString(time) {
+    let diffInHrs = time / 3600000;
+    let hh = Math.floor(diffInHrs);
+    let diffInMin = (diffInHrs - hh) * 60;
+    let mm = Math.floor(diffInMin);
+    let diffInSec = (diffInMin - mm) * 60;
+    let ss = Math.floor(diffInSec);
+    let diffInMs = (diffInSec - ss) * 100;
+    let ms = Math.floor(diffInMs);
+
+    return `${mm.toString().padStart(2, "0")}:${ss.toString().padStart(2, "0")}:${ms.toString().padStart(2, "0")}`;
+}
+
+document.getElementById('start').addEventListener('click', () => {
+    // 檢查是否正在運作，如果是，就直接返回，不執行下方代碼
+    if (isRunning) return;
+
+    isRunning = true; // 設定為運作狀態
+    startTime = Date.now() - elapsedTime;
+    timerInterval = setInterval(() => {
+        elapsedTime = Date.now() - startTime;
+        display.innerHTML = timeToString(elapsedTime);
+    }, 10);
+});
+
+document.getElementById('pause').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    isRunning = false; // 設定為暫停狀態
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    isRunning = false; // 重置狀態
+    elapsedTime = 0;
+    display.innerHTML = "00:00:00";
+});
+    </script>
+</body>
+</html>
