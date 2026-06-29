@@ -1,67 +1,320 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <title>簡約碼錶</title>
-    <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f4f4f9; }
-        #display { font-size: 4rem; font-weight: bold; margin-bottom: 20px; color: #333; }
-        .buttons button { padding: 10px 20px; font-size: 1.2rem; margin: 0 5px; cursor: pointer; border: none; border-radius: 5px; color: white; }
-        #start { background-color: #28a745; }
-        #pause { background-color: #ffc107; }
-        #reset { background-color: #dc3545; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可愛風碼表 - 實作版</title>
+<style>
+    /* 全域樣式 - 設置背景色 */
+    body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #fcebeb; /* 柔和粉紅色背景 */
+        font-family: 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+    }
+
+    /* 主要容器 - 白色圓角矩形 */
+    .stopwatch-container {
+        background-color: white;
+        width: 320px;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* 輕微陰影 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 標題區域 */
+    .header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #333;
+        font-weight: bold;
+    }
+    .header .subtitle {
+        font-size: 0.8rem;
+        color: #888;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    /* 數字顯示區域 - 鮮明粉紅色 */
+    #display {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #ff8ca3;
+        margin-bottom: 30px;
+        font-variant-numeric: tabular-nums; /* 確保數字寬度固定 */
+    }
+
+    /* 按鈕容器 */
+    .controls {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    /* 上方兩個按鈕的容器 */
+    .top-controls {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* 基礎按鈕樣式 */
+    button {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s, background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    button:active {
+        opacity: 0.8;
+    }
+    button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* 各別按鈕顏色 */
+    #startStopBtn.start {
+        background-color: #bff3b1; /* 綠色 */
+        color: #1f5016;
+    }
+    #startStopBtn.stop {
+        background-color: #ffd0ab; /* 橘色 */
+        color: #603e21;
+    }
+    #startStopBtn.resume {
+        background-color: #bff3b1; /* 恢復成綠色 */
+        color: #1f5016;
+    }
+
+    #lapBtn {
+        background-color: #d1effe; /* 藍色 */
+        color: #194459;
+    }
+
+    #resetBtn {
+        background-color: #ffb8c5; /* 淺粉紅 */
+        color: #5d252f;
+    }
+
+    /* 分圈紀錄區域 */
+    .laps-container {
+        width: 100%;
+        color: #888;
+        font-size: 0.8rem;
+        text-align: center;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .laps-container .no-laps {
+        color: #ddd;
+    }
+
+    .lap-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 10px;
+        border-bottom: 1px solid #f9f9f9;
+    }
+    .lap-item:last-child {
+        border-bottom: none;
+    }
+    .lap-index {
+        color: #aaa;
+    }
+</style>
 </head>
 <body>
 
-    <div id="display">00:00:00</div>
-    <div class="buttons">
-        <button id="start">開始</button>
-        <button id="pause">暫停</button>
-        <button id="reset">重置</button>
+<div class="stopwatch-container">
+    <div class="header">
+        <h1>My Stopwatch</h1>
+        <div class="subtitle">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            每一秒都值得被記住
+        </div>
     </div>
+    
+    <div id="display">00:00.00</div>
+    
+    <div class="controls">
+        <div class="top-controls">
+            <button id="startStopBtn" class="start">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                開始
+            </button>
+            <button id="lapBtn" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+                分圈
+            </button>
+        </div>
+        <button id="resetBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            重置
+        </button>
+    </div>
+    
+    <div class="laps-container" id="lapsContainer">
+        <div class="no-laps" id="noLapsMessage">尚無分圈紀錄</div>
+    </div>
+</div>
 
-    <script>
-       let startTime, elapsedTime = 0, timerInterval;
-let isRunning = false; // 新增狀態變數
-const display = document.getElementById('display');
+<script>
+    let startTime, elapsedTime = 0, timerInterval;
+    let isRunning = false;
+    let laps = [];
 
-function timeToString(time) {
-    let diffInHrs = time / 3600000;
-    let hh = Math.floor(diffInHrs);
-    let diffInMin = (diffInHrs - hh) * 60;
-    let mm = Math.floor(diffInMin);
-    let diffInSec = (diffInMin - mm) * 60;
-    let ss = Math.floor(diffInSec);
-    let diffInMs = (diffInSec - ss) * 100;
-    let ms = Math.floor(diffInMs);
+    const display = document.getElementById('display');
+    const startStopBtn = document.getElementById('startStopBtn');
+    const lapBtn = document.getElementById('lapBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const lapsContainer = document.getElementById('lapsContainer');
+    const noLapsMessage = document.getElementById('noLapsMessage');
 
-    return `${mm.toString().padStart(2, "0")}:${ss.toString().padStart(2, "0")}:${ms.toString().padStart(2, "0")}`;
-}
+    // 將毫秒數格式化為 MM:SS.ss
+    function timeToString(time) {
+        let diffInMin = time / 60000;
+        let mm = Math.floor(diffInMin);
 
-document.getElementById('start').addEventListener('click', () => {
-    // 檢查是否正在運作，如果是，就直接返回，不執行下方代碼
-    if (isRunning) return;
+        let diffInSec = (diffInMin - mm) * 60;
+        let ss = Math.floor(diffInSec);
 
-    isRunning = true; // 設定為運作狀態
-    startTime = Date.now() - elapsedTime;
-    timerInterval = setInterval(() => {
-        elapsedTime = Date.now() - startTime;
-        display.innerHTML = timeToString(elapsedTime);
-    }, 10);
-});
+        let diffInMs = (diffInSec - ss) * 100;
+        let ms = Math.floor(diffInMs);
 
-document.getElementById('pause').addEventListener('click', () => {
-    clearInterval(timerInterval);
-    isRunning = false; // 設定為暫停狀態
-});
+        let formattedMM = mm.toString().padStart(2, "0");
+        let formattedSS = ss.toString().padStart(2, "0");
+        let formattedMS = ms.toString().padStart(2, "0");
 
-document.getElementById('reset').addEventListener('click', () => {
-    clearInterval(timerInterval);
-    isRunning = false; // 重置狀態
-    elapsedTime = 0;
-    display.innerHTML = "00:00:00";
-});
-    </script>
+        return `${formattedMM}:${formattedSS}.${formattedMS}`;
+    }
+
+    // 開始功能
+    function start() {
+        startTime = Date.now() - elapsedTime;
+        timerInterval = setInterval(function printTime() {
+            elapsedTime = Date.now() - startTime;
+            display.innerHTML = timeToString(elapsedTime);
+        }, 10);
+        
+        isRunning = true;
+        updateUI();
+    }
+
+    // 暫停功能
+    function stop() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        updateUI();
+    }
+
+    // 重置功能
+    function reset() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        elapsedTime = 0;
+        laps = [];
+        display.innerHTML = "00:00.00";
+        lapsContainer.innerHTML = '<div class="no-laps" id="noLapsMessage">尚無分圈紀錄</div>';
+        updateUI();
+    }
+
+    // 分圈功能
+    function lap() {
+        if (isRunning) {
+            const currentLapTime = elapsedTime;
+            laps.unshift(currentLapTime); // 將最新的分圈放在最前面
+            renderLaps();
+        }
+    }
+
+    // 根據碼表狀態更新介面
+    function updateUI() {
+        const iconStart = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+        const iconPause = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+        const iconResume = iconStart;
+
+        if (!isRunning && elapsedTime === 0) {
+            // 初始狀態
+            startStopBtn.innerHTML = iconStart + '開始';
+            startStopBtn.className = 'start';
+            lapBtn.disabled = true;
+        } else if (isRunning) {
+            // 計時中
+            startStopBtn.innerHTML = iconPause + '暫停';
+            startStopBtn.className = 'stop';
+            lapBtn.disabled = false;
+        } else if (!isRunning && elapsedTime > 0) {
+            // 暫停狀態
+            startStopBtn.innerHTML = iconResume + '繼續';
+            startStopBtn.className = 'resume';
+            lapBtn.disabled = true;
+        }
+    }
+
+    // 渲染分圈紀錄列表
+    function renderLaps() {
+        // 移除「尚無紀錄」訊息
+        const noLaps = document.getElementById('noLapsMessage');
+        if (noLaps) lapsContainer.removeChild(noLaps);
+
+        // 清空列表（除了無紀錄訊息外，但上面已經處理）並重新填充
+        const existingLaps = lapsContainer.querySelectorAll('.lap-item');
+        existingLaps.forEach(lap => lapsContainer.removeChild(lap));
+
+        laps.forEach((lapTime, index) => {
+            const lapItem = document.createElement('div');
+            lapItem.className = 'lap-item';
+            
+            const lapNumber = laps.length - index;
+            lapItem.innerHTML = `
+                <span class="lap-index">圈數 ${lapNumber}</span>
+                <span class="lap-time">${timeToString(lapTime)}</span>
+            `;
+            
+            lapsContainer.appendChild(lapItem);
+        });
+    }
+
+    // 按鈕事件監聽
+    startStopBtn.addEventListener('click', function() {
+        if (!isRunning) {
+            start();
+        } else {
+            stop();
+        }
+    });
+
+    lapBtn.addEventListener('click', lap);
+    resetBtn.addEventListener('click', reset);
+
+    // 初始介面更新
+    updateUI();
+</script>
+
 </body>
 </html>
